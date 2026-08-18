@@ -89,9 +89,9 @@ class CriacaoRepositorioController:
         """
         Cria o repositório, a partir do modelo da disciplina quando houver um.
 
-        As disciplinas de Contagem têm modelo cadastrado, de modo que este é o caminho
-        normal. A criação de repositório vazio permanece como alternativa para uma
-        disciplina ou campus ainda sem modelo — Betim, por exemplo.
+        Todas as disciplinas dos dois campi têm modelo cadastrado, de modo que este é o
+        caminho normal. A criação de repositório vazio permanece como alternativa para
+        uma disciplina ou campus que venha a ser cadastrado sem modelo.
 
         Args:
             novo_repositorio (NovoRepositorio): Solicitação validada.

@@ -33,25 +33,28 @@ class Template:
         return self.nome_completo
 
 
+# Modelos usados nos dois campi. Betim e Contagem mantêm, cada um na sua organização,
+# repositórios-modelo com os mesmos nomes — daí um único cadastro compartilhado. Se um
+# dos campi passar a usar nomes próprios, basta escrever o seu dicionário em separado.
+#
+# TIAW e TIAWFE são a mesma disciplina: a sigla do modelo é a forma extensa, a da
+# disciplina é a abreviada.
+MODELOS_PADRAO: Dict[Disciplina, str] = {
+    Disciplina.TIAW: "Template-TIAWFE",
+    Disciplina.TIAPN: "Template-TIAPN",
+    Disciplina.TIDAI: "Template-TIDAI",
+    Disciplina.TIAM: "Template-TIAM",
+    Disciplina.TIAI: "Template-TIAI",
+}
+
 # Repositórios-modelo, por campus e disciplina.
 #
 # Em ADS cada disciplina tem o seu modelo, ao contrário da Engenharia de Software, em
 # que havia um modelo genérico por campus. Os modelos ficam na própria organização do
 # campus, por isso apenas o nome do repositório é registado aqui.
-#
-# Betim ainda não consta: os modelos de lá serão cadastrados quando houver acesso à
-# organização.
 MODELOS_POR_CAMPUS: Dict[str, Dict[Disciplina, str]] = {
-    # Contagem
-    "pco": {
-        # TIAW e TIAWFE são a mesma disciplina: a sigla do modelo é a forma extensa,
-        # a da disciplina é a abreviada.
-        Disciplina.TIAW: "Template-TIAWFE",
-        Disciplina.TIAM: "Template-TIAM",
-        Disciplina.TIDAI: "Template-TIDAI",
-        Disciplina.TIAPN: "Template-TIAPN",
-        Disciplina.TIAI: "Template-TIAI",
-    },
+    "pbe": MODELOS_PADRAO,  # Betim
+    "pco": MODELOS_PADRAO,  # Contagem
 }
 
 

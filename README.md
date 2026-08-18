@@ -69,14 +69,15 @@ apenas da interface.
 
 ## 🏫 Campi e organizações
 
-| Campus   | Sigla | Organização no GitHub       | Situação                                  |
-|----------|-------|-----------------------------|-------------------------------------------|
-| Contagem | `pco` | `ICEI-PUC-Minas-PCO-ADS-TI` | Em uso: turmas e modelos cadastrados      |
-| Betim    | `pbe` | `ICEI-PUC-Minas-PBE-ADS-TI` | Aguardando acesso de owner à organização  |
+| Campus   | Sigla | Organização no GitHub       |
+|----------|-------|-----------------------------|
+| Betim    | `pbe` | `ICEI-PUC-Minas-PBE-ADS-TI` |
+| Contagem | `pco` | `ICEI-PUC-Minas-PCO-ADS-TI` |
 
-Enquanto não houver permissão de owner em Betim, o trabalho concentra-se em Contagem.
-Betim continua cadastrado, mas sem turmas nem modelos: a interface avisa que não há
-turma cadastrada e os repositórios nasceriam vazios.
+Os dois campi ofertam as cinco disciplinas, seguem o mesmo padrão de nomenclatura e
+mantêm, cada um na sua organização, modelos com os mesmos nomes. A sigla do campus não
+aparece no nome do repositório: o que separa os campi é a organização em que o
+repositório é criado.
 
 Novos campi são cadastrados em [`app/models/campus.py`](app/models/campus.py), no dicionário `CAMPI`.
 
@@ -84,8 +85,8 @@ Novos campi são cadastrados em [`app/models/campus.py`](app/models/campus.py), 
 
 ## 📚 Disciplinas
 
-| Sigla   | Período | Disciplina                              | Modelo em Contagem |
-|---------|---------|-----------------------------------------|--------------------|
+| Sigla   | Período | Disciplina                              | Modelo (nos dois campi) |
+|---------|---------|-----------------------------------------|-------------------------|
 | `TIAW`  | `p1` | Aplicações Web                          | `Template-TIAWFE` |
 | `TIAPN` | `p2` | Aplicações para Processos de Negócios   | `Template-TIAPN`  |
 | `TIDAI` | `p3` | Desenvolvimento de Aplicação Interativa | `Template-TIDAI`  |
@@ -131,8 +132,9 @@ Na criação em lote isso é verificado **uma vez por lote**, antes de qualquer 
 lote inteiro pertence a uma única turma, e portanto a um único modelo. Se o modelo não
 existir ou não estiver marcado, nada é criado e o motivo aparece na tela.
 
-Uma disciplina ou campus sem modelo cadastrado volta a criar repositórios vazios — é o
-caso de Betim hoje.
+Uma disciplina ou campus sem modelo cadastrado volta a criar repositórios vazios. Hoje
+não é o caso de nenhum dos dois: as cinco disciplinas têm modelo em Betim e em
+Contagem, e os dez repositórios estão marcados como template no GitHub.
 
 ---
 

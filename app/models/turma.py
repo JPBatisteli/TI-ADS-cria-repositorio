@@ -12,17 +12,14 @@ from app.models.disciplina import Disciplina
 # não compõe o nome do repositório; o seu uso definitivo ainda será decidido, e é por
 # isso que a estrutura para cadastrá-los permanece aqui, ainda vazia.
 #
-# Betim não consta: enquanto não houver acesso de owner à organização de lá, o trabalho
-# concentra-se em Contagem. A interface avisa quando o campus não tem disciplinas.
+# Os dois campi ofertam as cinco disciplinas e seguem o mesmo padrão de nomenclatura.
+DISCIPLINAS_SEM_CODIGOS: Dict[Disciplina, Tuple[str, ...]] = {
+    disciplina: () for disciplina in Disciplina
+}
+
 CODIGOS_POR_TURMA: Dict[str, Dict[Disciplina, Tuple[str, ...]]] = {
-    # Contagem
-    "pco": {
-        Disciplina.TIAW: (),
-        Disciplina.TIAM: (),
-        Disciplina.TIDAI: (),
-        Disciplina.TIAPN: (),
-        Disciplina.TIAI: (),
-    },
+    "pbe": dict(DISCIPLINAS_SEM_CODIGOS),  # Betim
+    "pco": dict(DISCIPLINAS_SEM_CODIGOS),  # Contagem
 }
 
 

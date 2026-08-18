@@ -13,21 +13,25 @@ from test_criacao_de_equipe import GithubServiceFalso, criar_controller
 from test_github_service import RespostaFalsa
 
 ORG_CONTAGEM = "ICEI-PUC-Minas-PCO-ADS-TI"
+ORG_BETIM = "ICEI-PUC-Minas-PBE-ADS-TI"
+
+# Campus fictício, usado nos casos em que o que está sob teste é a ausência de modelo.
+CAMPUS_SEM_MODELO = Campus(sigla="xxx", nome="Sem Modelo", organizacao="Org")
 
 # Espelho do cadastro de modelos, escrito de forma independente para que uma alteração
-# acidental nele seja detectada.
-MODELOS_ESPERADOS_EM_CONTAGEM = {
+# acidental nele seja detectada. Os dois campi usam os mesmos nomes de modelo.
+MODELOS_ESPERADOS = {
     Disciplina.TIAW: "Template-TIAWFE",
-    Disciplina.TIAM: "Template-TIAM",
-    Disciplina.TIDAI: "Template-TIDAI",
     Disciplina.TIAPN: "Template-TIAPN",
+    Disciplina.TIDAI: "Template-TIDAI",
+    Disciplina.TIAM: "Template-TIAM",
     Disciplina.TIAI: "Template-TIAI",
 }
 
 
 def solicitacao_em(disciplina=Disciplina.TIAW, campus="Contagem", **extras) -> NovoRepositorio:
     return NovoRepositorio(
-        campus=obter_campus(campus),
+        campus=campus if isinstance(campus, Campus) else obter_campus(campus),
         disciplina=disciplina,
         codigo_disciplina="2401100",
         nome_projeto="Adota Pet",
@@ -37,14 +41,21 @@ def solicitacao_em(disciplina=Disciplina.TIAW, campus="Contagem", **extras) -> N
 
 class TestModeloPorDisciplina:
 
-    @pytest.mark.parametrize("disciplina, repositorio", MODELOS_ESPERADOS_EM_CONTAGEM.items())
+    @pytest.mark.parametrize("disciplina, repositorio", MODELOS_ESPERADOS.items())
     def test_cada_disciplina_tem_o_seu_modelo(self, disciplina, repositorio):
         template = obter_template("pco", ORG_CONTAGEM, disciplina)
 
         assert template == Template(owner=ORG_CONTAGEM, repositorio=repositorio)
 
-    def test_todas_as_disciplinas_de_contagem_tem_modelo(self):
-        assert set(MODELOS_POR_CAMPUS["pco"]) == set(Disciplina)
+    @pytest.mark.parametrize("sigla", ["pbe", "pco"])
+    def test_os_dois_campi_tem_modelo_para_todas_as_disciplinas(self, sigla):
+        assert set(MODELOS_POR_CAMPUS[sigla]) == set(Disciplina)
+
+    @pytest.mark.parametrize("disciplina, repositorio", MODELOS_ESPERADOS.items())
+    def test_betim_usa_os_mesmos_modelos_na_sua_organizacao(self, disciplina, repositorio):
+        template = obter_template("pbe", ORG_BETIM, disciplina)
+
+        assert template == Template(owner=ORG_BETIM, repositorio=repositorio)
 
     def test_o_modelo_fica_na_organizacao_do_campus(self):
         template = obter_template("pco", ORG_CONTAGEM, Disciplina.TIAM)
@@ -59,15 +70,12 @@ class TestModeloPorDisciplina:
         assert obter_template("pco", ORG_CONTAGEM, Disciplina.TIAW).repositorio == "Template-TIAWFE"
 
     def test_campus_sem_modelos_cadastrados(self):
-        assert obter_template("pbe", "ICEI-PUC-Minas-PBE-ADS-TI", Disciplina.TIAW) is None
-
-    def test_betim_ainda_nao_tem_modelos(self):
-        assert "pbe" not in MODELOS_POR_CAMPUS
+        assert obter_template(CAMPUS_SEM_MODELO.sigla, "Org", Disciplina.TIAW) is None
 
 
 class TestTemplateDaSolicitacao:
 
-    @pytest.mark.parametrize("disciplina, repositorio", MODELOS_ESPERADOS_EM_CONTAGEM.items())
+    @pytest.mark.parametrize("disciplina, repositorio", MODELOS_ESPERADOS.items())
     def test_solicitacao_adota_o_modelo_da_sua_disciplina(self, disciplina, repositorio):
         solicitacao = solicitacao_em(disciplina)
 
@@ -79,18 +87,15 @@ class TestTemplateDaSolicitacao:
         assert solicitacao_em(Disciplina.TIAM).template != solicitacao_em(Disciplina.TIAI).template
 
     def test_campus_sem_modelo_nao_usa_template(self):
-        solicitacao = NovoRepositorio(
-            campus=Campus(sigla="xxx", nome="Sem Modelo", organizacao="Org"),
-            disciplina=Disciplina.TIAW,
-            codigo_disciplina="2401100",
-            nome_projeto="Adota Pet"
-        )
+        solicitacao = solicitacao_em(campus=CAMPUS_SEM_MODELO)
 
         assert solicitacao.usa_template is False
         assert solicitacao.template is None
 
-    def test_betim_cria_repositorio_vazio(self):
-        assert solicitacao_em(campus="Betim").usa_template is False
+    def test_betim_adota_o_modelo_da_propria_organizacao(self):
+        solicitacao = solicitacao_em(Disciplina.TIDAI, campus="Betim")
+
+        assert solicitacao.template == Template(owner=ORG_BETIM, repositorio="Template-TIDAI")
 
 
 class TestCriacaoAPartirDoModelo:
@@ -127,7 +132,7 @@ class TestCriacaoAPartirDoModelo:
     def test_campus_sem_modelo_cria_repositorio_vazio(self):
         service = GithubServiceFalso()
         resultado = criar_controller(service).criar_repositorio(
-            solicitacao_em(campus="Betim", criar_equipe=False)
+            solicitacao_em(campus=CAMPUS_SEM_MODELO, criar_equipe=False)
         )
 
         assert service.templates_usados == []
@@ -202,7 +207,7 @@ Membros: bruno
         controller = CriacaoRepositorioController(token="t")
         controller.github_service = service
         solicitacoes = ArquivoLote.de_texto(TestVerificacaoDoModeloNoLote.ARQUIVO).montar_solicitacoes(
-            obter_campus(campus), disciplina, "2401100"
+            campus if isinstance(campus, Campus) else obter_campus(campus), disciplina, "2401100"
         )
         return controller.verificar_lote(solicitacoes), service
 
@@ -224,7 +229,7 @@ Membros: bruno
         assert service.consultas_de_template == [f"{ORG_CONTAGEM}/Template-TIAM"]
 
     def test_campus_sem_modelo_nao_consulta_nada(self):
-        verificacao, service = self.verificar(template_valido=False, campus="Betim")
+        verificacao, service = self.verificar(template_valido=False, campus=CAMPUS_SEM_MODELO)
 
         assert service.consultas_de_template == []
         assert verificacao.erro_template == ""
@@ -270,7 +275,7 @@ class TestPadraoFixoDeCriacao:
 
         service = ServiceQueCaptura()
         criar_controller(service).criar_repositorio(
-            solicitacao_em(campus="Betim", criar_equipe=False)
+            solicitacao_em(campus=CAMPUS_SEM_MODELO, criar_equipe=False)
         )
 
         assert capturado["privado"] is True

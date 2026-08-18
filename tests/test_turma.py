@@ -15,29 +15,29 @@ from app.models.turma import (
 # PENDENTE: os códigos das turmas de ADS ainda não foram informados, por isso o cadastro
 # tem as disciplinas sem nenhuma turma. Quando os códigos chegarem, este espelho passa a
 # conter também os códigos, como no projeto de origem.
-DISCIPLINAS_ESPERADAS = {
-    "pco": ["TIAW", "TIAPN", "TIDAI", "TIAM", "TIAI"],
-}
+DISCIPLINAS_ESPERADAS = ["TIAW", "TIAPN", "TIDAI", "TIAM", "TIAI"]
+
+CAMPI_ESPERADOS = ["pbe", "pco"]
 
 
 class TestCatalogo:
 
-    def test_contagem_oferta_as_cinco_disciplinas(self):
-        assert [d.rotulo for d in listar_disciplinas("pco")] == DISCIPLINAS_ESPERADAS["pco"]
+    @pytest.mark.parametrize("sigla", CAMPI_ESPERADOS)
+    def test_cada_campus_oferta_as_cinco_disciplinas(self, sigla):
+        assert [d.rotulo for d in listar_disciplinas(sigla)] == DISCIPLINAS_ESPERADAS
 
-    def test_o_catalogo_so_contem_campi_cadastrados(self):
+    def test_o_catalogo_cobre_exatamente_os_campi_cadastrados(self):
         siglas_cadastradas = {campus.sigla for campus in CAMPI.values()}
-        assert set(CODIGOS_POR_TURMA) <= siglas_cadastradas
+        assert set(CODIGOS_POR_TURMA) == siglas_cadastradas
 
-    def test_betim_ainda_nao_tem_turmas(self):
-        # Enquanto não houver acesso de owner à organização de Betim, o trabalho
-        # concentra-se em Contagem.
-        assert "pbe" not in CODIGOS_POR_TURMA
-        assert listar_disciplinas("pbe") == []
+    @pytest.mark.parametrize("sigla", CAMPI_ESPERADOS)
+    @pytest.mark.parametrize("rotulo", DISCIPLINAS_ESPERADAS)
+    def test_disciplinas_ainda_sem_codigos_cadastrados(self, sigla, rotulo):
+        assert listar_codigos(sigla, Disciplina[rotulo]) == []
 
-    @pytest.mark.parametrize("rotulo", DISCIPLINAS_ESPERADAS["pco"])
-    def test_disciplinas_ainda_sem_codigos_cadastrados(self, rotulo):
-        assert listar_codigos("pco", Disciplina[rotulo]) == []
+    def test_os_campi_nao_partilham_o_mesmo_dicionario(self):
+        # Cadastrar um código num campus não pode aparecer no outro.
+        assert CODIGOS_POR_TURMA["pbe"] is not CODIGOS_POR_TURMA["pco"]
 
     def test_nao_ha_selecao_de_turno(self):
         # O curso é ofertado apenas à noite, por isso o catálogo lista os códigos
